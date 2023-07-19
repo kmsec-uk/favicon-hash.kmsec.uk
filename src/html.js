@@ -42,7 +42,7 @@ export default `<!DOCTYPE html>
 <form id="by_url" onsubmit="return submit_url(this)">
 
   <label for="url">Favicon URL</label>
-  <input type="url" id="url" name="url" placeholder="https://kmsec.uk/favicon.ico" required>
+  <input type="url" id="url" name="url" placeholder="https://kmsec.uk/favicon.ico" onfocus="updateContents()" required>
   <small>Only domains are supported. If HTTPS is used, the upstream must have a valid certificate</small>
   <button value="url" type="submit">Hash from URL</button>
   </form>
@@ -88,6 +88,9 @@ with open('favicon.ico', 'rb') as favicon:
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
 <script>
+function updateContents() {
+    document.getElementById("myURL").setAttribute("value", "https://")
+  }
 function submit_url(form) {
     var formdata = new FormData(form)
     upstream_url = encodeURIComponent(formdata.get("url"))
