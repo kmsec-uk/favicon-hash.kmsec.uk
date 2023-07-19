@@ -38,24 +38,53 @@ export default `<!DOCTYPE html>
 <h1>Favicon hash generator</h1>
 <hr>
 <p>Get the favicon hash of a website for Shodan hunting</p>
+<div class="grid">
 <article>
+<h4>Retrieve from URL</h4>
 <form id="by_url" onsubmit="return submit_url(this)">
 
   <label for="url">Favicon URL</label>
   <input type="url" id="url" name="url" placeholder="https://kmsec.uk/favicon.ico" onfocus="updateContents()" required>
   <small>Only domains are supported. If HTTPS is used, the upstream must have a valid certificate</small>
   <button value="url" type="submit">Hash from URL</button>
-  </form>
-  <div id="output"><div id="outputinner"></div></div>
+</form>
+  <div id="output"></div>
 
 </article>
+<article>
+<h4>Upload file</h4>
+
+<form id="by_file" onsubmit="return submit_file(this)">
+<label for="file">File browser
+  <input type="file" id="file" name="file">
+</label>
+<button type="submit">Hash from file</button>
+<div id="output_file"></div>
+
+
+</article>
+</div>
+<article>
+<header><h4>Use this site programmatically</h4></header>
+<p>Get the favicon hash for a URL:<p>
+
+<code>curl https://favicon-hash.kmsec.uk/api/?url=https://www.google.com/favicon.ico</code>
+
+<p>The provided URL can be URL-encoded to ensure more reliable execution:<p>
+<code>curl https://favicon-hash.kmsec.uk/api/?url=https%3A%2F%2Fwww%2Egoogle%2Ecom%2Ffavicon%2Eico</code>
+
+<p>Get the favicon hash from a file through POST request. The response is the favicon hash:<p>
+<code>curl --data-binary @favicon.ico https://favicon-hash.kmsec.uk/file/</code>
+
+</article>
+
 <!--footer-->
 <article>
   <header><h4>Generating favicon hashes</h4></header>
   <p>"Favicon hashes" are actually MurmurHash3 hashes. Shodan doesn't hash the raw file, but a modified base64-encoded version.</p>
   <p>The Murmurhash3 x86 32-bit algorithm used by this site is taken from the <a href="https://github.com/karanlyons/murmurHash3.js">MurmurHash3 package</a>, but is modified to return a signed integer, as is used in Shodan.</p>
   <p>Because this is built with Cloudflare Workers and uses the <code>Fetch</code> Javascript API on the Cloudflare Edge, Only domains will work (and only valid certificates will be accepted for HTTPS requests).
-  <p>Some sites will also forbid access from Cloudflare cloud so you may get an error</p>
+  <p>Some sites forbid access from Cloudflare's edge so you may get an error. In these cases, you can download the favicon through other means and then upload it.</p>
   <p>This is some Python3 code you can use if you would rather generate a favicon hash locally:</p>
   <pre><code class="language-python">
 import base64
@@ -102,10 +131,28 @@ function submit_url(form) {
         .then(hash => {
             console.log(hash)
             const output_div = document.getElementById('output')
-            output_div.innerHTML = \`<ins>result for \${formdata.get("url")}:</ins><br>\${hash}\`
+            output_div.innerHTML = \`<ins>Result for \${formdata.get("url")}:</ins><br>\${hash}\`
             output_div.style.visibility='visible'
 
         }) 
+    return false;
+}
+
+function submit_file(form) {
+    var formdata = new FormData(form)
+    file_data = formdata.get("file")
+    file_endpoint = "/file/"
+    fetch(file_endpoint, {
+        method: "POST",
+        body: file_data
+    })
+        .then(response => response.text())
+        .then(hash =>{
+            console.log(hash)
+            const output_div = document.getElementById('output_file')
+            output_div.innerHTML = \`<ins>Result for uploaded file:</ins><br>\${hash}\`
+            output_div.style.visibility='visible'
+        })
     return false;
 }
 </script>

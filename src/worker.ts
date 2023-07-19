@@ -12,6 +12,7 @@ async function favicon_to_hash(arraybuf: ArrayBuffer) {
 	const uint8View = new Uint8Array(arraybuf);
 	// favicon hashes are calculated on a *modified* base64. Shodan inserts newlines (\n) every 76 characters and at the end of the base64 before calculating the hash:
 	const base64 = Base64.fromUint8Array(uint8View).replace(/(.{76}|$)/g, "$1\n")
+	console.log(base64)
 	// Return a stringified signed integer from mmh3 function:
 	const mmh3hash = hash32(base64).toString()
 
@@ -49,6 +50,21 @@ async function apiRequest(requestURL: URL) {
 
 }
 
+async function fileRequest(request: Request) {
+	if (request.method !== "POST") {
+		return new Response(`Error: only POST requests accepted at this endpoint`, { status: 500 })
+	} else {
+		const arraybuf =  await request.arrayBuffer()
+		const mmh3hash = await favicon_to_hash(arraybuf)
+		request.headers.forEach(header => {
+			console.log(header)
+		})
+		console.log()
+		console.log(mmh3hash)
+		return new Response(mmh3hash)
+	}
+	
+}
 
 export default {
 	async fetch(request: Request): Promise<Response> {
@@ -68,6 +84,9 @@ export default {
 			case '/api/':
 				return apiRequest(requestURL)
 			
+			case '/file':
+			case '/file/':
+				return fileRequest(request)
 			case '/favicon.ico':
 				return new Response(Base64.toUint8Array(site_favicon).buffer, {
 					headers: {
