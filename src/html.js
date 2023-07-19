@@ -106,7 +106,7 @@ with open('favicon.ico', 'rb') as favicon:
   </code>
   </pre>
   <footer>
-  	<sub><a href="https://kmsec.uk">kmsec.uk</a> - source on <a href="https://github.com/kmsec-uk/">Github</a><br>
+  	<sub><a href="https://kmsec.uk">kmsec.uk</a> - source on <a href="https://github.com/kmsec-uk/favicon-hash.kmsec.uk">Github</a><br>
 	Styled with <a href="https://picocss.com/">PicoCSS</a><br>
     Built with <a href="https://workers.cloudflare.com/">Cloudflare Workers</a>
 	</sub>
