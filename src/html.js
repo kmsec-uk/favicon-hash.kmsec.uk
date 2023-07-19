@@ -89,7 +89,7 @@ with open('favicon.ico', 'rb') as favicon:
 <script>hljs.highlightAll();</script>
 <script>
 function updateContents() {
-    document.getElementById("myURL").setAttribute("value", "https://")
+    document.getElementById("url").setAttribute("value", "https://")
   }
 function submit_url(form) {
     var formdata = new FormData(form)
