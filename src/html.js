@@ -1,20 +1,20 @@
 export default `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>View the IP, headers, and geolocation of your browser request</title>
+    <title>Favicon hash generator</title>
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="canonical"
-        href="https://faviconhash.kmsec.uk" />
+        href="https://favicon-hash.kmsec.uk" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <link rel="stylesheet"
       href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">
     <meta property="og:type" content="website" />
     <meta property="og:url"
-        content="https://faviconhash.kmsec.uk" />
+        content="https://favicon-hash.kmsec.uk" />
     <meta property="og:site_name" content="Favicon hash" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:domain" content="faviconhash.kmsec.uk" />
+    <meta name="twitter:domain" content="favicon-hash.kmsec.uk" />
     <meta name="twitter:title" property="og:title" itemprop="name"
         content="Get the favicon hash of a website for Shodan hunting" />
     <meta name="twitter:description" property="og:description" itemprop="description"
