@@ -37,4 +37,4 @@ Get the favicon hash from a file through POST request. The response is the favic
 curl --data-binary @favicon.ico https://favicon-hash.kmsec.uk/file/
 ```
 
-Once you have the favicon hash, you can search Shodan using `http.favicon.hash:<hash>`
+Once you have the favicon hash, you can search Shodan using the search filter `http.favicon.hash:<hash>`
