@@ -18,7 +18,7 @@ export default `<!DOCTYPE html>
     <meta name="twitter:title" property="og:title" itemprop="name"
         content="Get the favicon hash of a website for Shodan hunting" />
     <meta name="twitter:description" property="og:description" itemprop="description"
-        content="Get the favicon hash of a website for Shodan hunting" />
+        content="Get the favicon hash of a website's favicon for Shodan hunting" />
 	<style>
 		body {
 			padding: 20px;
@@ -37,7 +37,7 @@ export default `<!DOCTYPE html>
 <main class="container">
 <h1>Favicon hash generator</h1>
 <hr>
-<p>Get the favicon hash of a website for Shodan hunting</p>
+<p>Get the favicon hash of a website's favicon for Shodan hunting</p>
 <div class="grid">
 <article>
 <h4>Retrieve from URL</h4>
@@ -45,7 +45,7 @@ export default `<!DOCTYPE html>
 
   <label for="url">Favicon URL</label>
   <input type="url" id="url" name="url" placeholder="https://kmsec.uk/favicon.ico" onfocus="updateContents()" required>
-  <small>Only domains are supported. If HTTPS is used, the upstream must have a valid certificate</small>
+  <small>Please provide the full URI path to the favicon</small>
   <button value="url" type="submit">Hash from URL</button>
 </form>
   <div id="output"></div>
@@ -66,11 +66,11 @@ export default `<!DOCTYPE html>
 </div>
 <article>
 <header><h4>Use this site programmatically</h4></header>
-<p>Get the favicon hash for a URL:<p>
+<p>Retrieve the favicon hash from a URL:<p>
 
 <code>curl https://favicon-hash.kmsec.uk/api/?url=https://www.google.com/favicon.ico | jq</code>
 
-The response JSON contains the location, content-type, favicon hash, md5, and sha256:
+<p>The response JSON contains the location, content-type, favicon hash, md5, and sha256 of the requested resource.</p> 
 
 <pre><code class="language-json">{
   "req_url": "https://google.com/favicon.ico",
@@ -80,12 +80,25 @@ The response JSON contains the location, content-type, favicon hash, md5, and sh
   "md5": "f3418a443e7d841097c714d69ec4bcb8",
   "sha256": "6da5620880159634213e197fafca1dde0272153be3e4590818533fab8d040770"
 }</code></pre>
+<p><code>req_url</code> and <code>req_location</code> are the 
+user-provided URL (contained in the url parameter), and the location the application was redirected to; respectively. Note the above example indicates a redirect from google.com to www.google.com. 
+ <code>req_content_type</code> (Content-Type as received by the application when requesting the resource) is exposed for visibility and troubleshooting.</p>
 
-<p>The provided URL can be URL-encoded to ensure more reliable execution:<p>
+<p>The URL that you want to retrieve the hash for can be URL-encoded to ensure more reliable execution:<p>
 <code>curl https://favicon-hash.kmsec.uk/api/?url=https%3A%2F%2Fwww%2Egoogle%2Ecom%2Ffavicon%2Eico</code>
 
-<p>Get the favicon hash from a file through POST request. The response is the favicon hash:<p>
-<code>curl --data-binary @favicon.ico https://favicon-hash.kmsec.uk/file/</code>
+<p>Get the favicon hash from a local file through POST request. The response is a JSON object containing the md5, sha256, and favicon hashes:<p>
+<pre><code class="language-bash"># Download a favicon file
+wget -O favicon.ico https://example.com/favicon-file-you-want.ico
+
+# POST it to the /file endpoint to get the favicon hash
+curl --data-binary @favicon.ico https://favicon-hash.kmsec.uk/file/</code></pre>
+<p>The response:</p>
+<pre><code>{
+  "favicon_hash": "-451606383",
+  "md5": "b8f9b8401503b442e22369f9908939b7",
+  "sha256": "f0623f69f6f12bf3076d3a1f07c647bb9839a0b9769ea5330e6093fb69c392d7"
+}</code></pre>
 
 </article>
 
@@ -93,14 +106,6 @@ The response JSON contains the location, content-type, favicon hash, md5, and sh
 <article>
   <header><h4>Generating favicon hashes</h4></header>
   <p>"Favicon hashes" are actually MurmurHash3 hashes. Shodan doesn't hash the raw file, but a modified base64-encoded version. See the below code snippet for details.</p>
-  <p>The Murmurhash3 x86 32-bit algorithm used by this site is taken from the <a href="https://github.com/karanlyons/murmurHash3.js">MurmurHash3 package</a>, but is modified to return a signed integer, as is used in Shodan.</p>
-  <p>Because this is built with Cloudflare Workers and uses the <code>Fetch</code> Javascript API on the Cloudflare Edge:</p>
-  <ul>
-    <li>Only domains will work</li>
-    <li>Only valid certificates will be accepted for HTTPS requests</li>
-    <li>Only default ports will work (80 and 443 for HTTP and HTTPS, respectively). This is a <a href="https://github.com/cloudflare/workers-sdk/issues/1320">known bug with Cloudflare Workers</a></li>
-  </ul>
-  <p>Some sites forbid access from Cloudflare's edge so you may get an error. In these cases, you can download the favicon through other means and then upload it.</p>
   <p>This is some Python3 code you can use if you would rather generate a favicon hash locally:</p>
   <pre><code class="language-python">
 import base64
@@ -121,9 +126,23 @@ with open('favicon.ico', 'rb') as favicon:
     print(hash)
   </code>
   </pre>
+  </article>
+  <article>
+  <header><h4>About this site</h4></header>
+  <p>This site processes requests at the Cloudflare Edge using Cloudflare Workers. When you request a favicon 
+  hash from URL, your browser does not make the request to the resource. Instead, the Worker retrieves the requested resource.</p>
+  <p>Because this is built with Cloudflare Workers and uses the <code>Fetch</code> Javascript API:</p>
+  <ul>
+    <li>Only domains will work</li>
+    <li>Only valid certificates will be accepted for HTTPS requests</li>
+    <li>Only default ports will work (80 and 443 for HTTP and HTTPS, respectively). This is a <a href="https://github.com/cloudflare/workers-sdk/issues/1320">known bug with Cloudflare Workers</a></li>
+  </ul>
+  <p>Some sites forbid access from Cloudflare's edge so you may get an error. In these cases, you can download the favicon through other means and then use the hash from file functionality.</p>
+  <p>The Murmurhash3 x86 32-bit algorithm used by this site is taken from the <a href="https://github.com/karanlyons/murmurHash3.js">MurmurHash3 package</a>, but is modified to return a signed integer, as is used in Shodan.</p>
   <footer>
-  	<sub><a href="https://kmsec.uk">kmsec.uk</a> - source on <a href="https://github.com/kmsec-uk/favicon-hash.kmsec.uk">Github</a><br>
-	Styled with <a href="https://picocss.com/">PicoCSS</a> and <a href="https://highlightjs.org/">highlight.js</a><br>
+  <sub>
+    <a href="https://kmsec.uk">kmsec.uk</a> - source on <a href="https://github.com/kmsec-uk/favicon-hash.kmsec.uk">Github</a><br>
+	  Styled with <a href="https://picocss.com/">PicoCSS</a> and <a href="https://highlightjs.org/">highlight.js</a><br>
     Built with <a href="https://workers.cloudflare.com/">Cloudflare Workers</a>
 	</sub>
   </footer>
