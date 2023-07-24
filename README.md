@@ -31,7 +31,7 @@ The response from the API request will contain several:
 }
 ```
 
-Get the favicon hash from a file through POST request. The response is the favicon hash:
+Get the favicon hash from a file through POST request. The response is the favicon hash, MD5, and SHA256 of the submitted file:
 
 ```bash
 curl --data-binary @favicon.ico https://favicon-hash.kmsec.uk/file/
