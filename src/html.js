@@ -123,9 +123,7 @@ with open('favicon.ico', 'rb') as favicon:
     # 4. MMH3 hash
     hash = mmh3.hash(with_newlines)
     
-    print(hash)
-  </code>
-  </pre>
+    print(hash)</code></pre>
   </article>
   <article>
   <header><h4>About this site</h4></header>
