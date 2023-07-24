@@ -68,7 +68,18 @@ export default `<!DOCTYPE html>
 <header><h4>Use this site programmatically</h4></header>
 <p>Get the favicon hash for a URL:<p>
 
-<code>curl https://favicon-hash.kmsec.uk/api/?url=https://www.google.com/favicon.ico</code>
+<code>curl https://favicon-hash.kmsec.uk/api/?url=https://www.google.com/favicon.ico | jq</code>
+
+The response JSON contains the location, content-type, favicon hash, md5, and sha256:
+
+<pre><code class="language-json">{
+  "req_url": "https://google.com/favicon.ico",
+  "req_location": "https://www.google.com/favicon.ico",
+  "req_content_type": "image/x-icon",
+  "favicon_hash": "708578229",
+  "md5": "f3418a443e7d841097c714d69ec4bcb8",
+  "sha256": "6da5620880159634213e197fafca1dde0272153be3e4590818533fab8d040770"
+}</code></pre>
 
 <p>The provided URL can be URL-encoded to ensure more reliable execution:<p>
 <code>curl https://favicon-hash.kmsec.uk/api/?url=https%3A%2F%2Fwww%2Egoogle%2Ecom%2Ffavicon%2Eico</code>
@@ -81,9 +92,14 @@ export default `<!DOCTYPE html>
 <!--footer-->
 <article>
   <header><h4>Generating favicon hashes</h4></header>
-  <p>"Favicon hashes" are actually MurmurHash3 hashes. Shodan doesn't hash the raw file, but a modified base64-encoded version.</p>
+  <p>"Favicon hashes" are actually MurmurHash3 hashes. Shodan doesn't hash the raw file, but a modified base64-encoded version. See the below code snippet for details.</p>
   <p>The Murmurhash3 x86 32-bit algorithm used by this site is taken from the <a href="https://github.com/karanlyons/murmurHash3.js">MurmurHash3 package</a>, but is modified to return a signed integer, as is used in Shodan.</p>
-  <p>Because this is built with Cloudflare Workers and uses the <code>Fetch</code> Javascript API on the Cloudflare Edge, Only domains will work (and only valid certificates will be accepted for HTTPS requests).
+  <p>Because this is built with Cloudflare Workers and uses the <code>Fetch</code> Javascript API on the Cloudflare Edge:</p>
+  <ul>
+    <li>Only domains will work</li>
+    <li>Only valid certificates will be accepted for HTTPS requests</li>
+    <li>Only default ports will work (80 and 443 for HTTP and HTTPS, respectively). This is a <a href="https://github.com/cloudflare/workers-sdk/issues/1320">known bug with Cloudflare Workers</a></li>
+  </ul>
   <p>Some sites forbid access from Cloudflare's edge so you may get an error. In these cases, you can download the favicon through other means and then upload it.</p>
   <p>This is some Python3 code you can use if you would rather generate a favicon hash locally:</p>
   <pre><code class="language-python">
@@ -107,7 +123,7 @@ with open('favicon.ico', 'rb') as favicon:
   </pre>
   <footer>
   	<sub><a href="https://kmsec.uk">kmsec.uk</a> - source on <a href="https://github.com/kmsec-uk/favicon-hash.kmsec.uk">Github</a><br>
-	Styled with <a href="https://picocss.com/">PicoCSS</a><br>
+	Styled with <a href="https://picocss.com/">PicoCSS</a> and <a href="https://highlightjs.org/">highlight.js</a><br>
     Built with <a href="https://workers.cloudflare.com/">Cloudflare Workers</a>
 	</sub>
   </footer>
@@ -117,6 +133,7 @@ with open('favicon.ico', 'rb') as favicon:
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
 <script>
+var shodan_query_uri = "https://www.shodan.io/search?query=http.favicon.hash%3A"
 function updateContents() {
     document.getElementById("url").setAttribute("value", "https://")
   }
@@ -127,14 +144,18 @@ function submit_url(form) {
     api_url = "api/" + "?url=" + upstream_url
     console.log(\`API request URL = \${window.location.href + api_url}\`)
     fetch(api_url)
-        .then(response => response.text())
-        .then(hash => {
-            console.log(hash)
-            const output_div = document.getElementById('output')
-            output_div.innerHTML = \`<ins>Result for \${formdata.get("url")}:</ins><br>\${hash}\`
-            output_div.style.visibility='visible'
-
-        }) 
+    .then(response => response.json())
+    .then(data => {
+        const favicon_hash = data.favicon_hash
+        const output_div = document.getElementById('output');
+        let tableHTML = \`<ins>Result for \${formdata.get("url")}:</ins><br><table role="grid">\`;
+        for (const key in data) {
+            tableHTML += \`<tr><td>\${key}</td><td><kbd>\${data[key]}</kbd></td></tr>\`;
+        }
+        tableHTML += \`</table><br><a href="\${shodan_query_uri + data.favicon_hash}"><strong>Check Shodan for this favicon</strong></a>\`
+        output_div.innerHTML = tableHTML;
+        output_div.style.visibility = 'visible';
+        })
     return false;
 }
 
@@ -146,12 +167,16 @@ function submit_file(form) {
         method: "POST",
         body: file_data
     })
-        .then(response => response.text())
-        .then(hash =>{
-            console.log(hash)
+        .then(response => response.json())
+        .then(data => {
             const output_div = document.getElementById('output_file')
-            output_div.innerHTML = \`<ins>Result for uploaded file:</ins><br>\${hash}\`
-            output_div.style.visibility='visible'
+            let tableHTML = \`<ins>Result for file:</ins><br><table role="grid">\`;
+        for (const key in data) {
+            tableHTML += \`<tr><td>\${key}</td><td><kbd>\${data[key]}</kbd></td></tr>\`;
+        }
+        tableHTML += \`</table><br><a href="\${shodan_query_uri + data.favicon_hash}"><strong>Check Shodan for this favicon</strong></a>\`
+        output_div.innerHTML = tableHTML;
+        output_div.style.visibility = 'visible';
         })
     return false;
 }
