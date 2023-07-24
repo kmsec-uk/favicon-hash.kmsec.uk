@@ -1,5 +1,5 @@
 # favicon-hash.kmsec.uk
-A Cloudflare Worker to gather favicon hashes for Shodan hunting.
+A Cloudflare Worker to gather favicon hashes for Shodan (or Censys) hunting.
 
 This will calculate the favicon hash for a given file, either by retrieving the favicon from a given URL, or from a file uploaded to the site.
 
@@ -18,7 +18,7 @@ The provided URL can be URL-encoded to ensure more reliable execution:
 ```bash
 curl https://favicon-hash.kmsec.uk/api/?url=https%3A%2F%2Fwww%2Egoogle%2Ecom%2Ffavicon%2Eico
 ```
-The response from the API request will contain several:
+The response from the API request will contain several artefacts:
 
 ```json
 {
@@ -26,7 +26,7 @@ The response from the API request will contain several:
   "req_location": "https://www.google.com/favicon.ico", // The final URL
   "req_content_type": "image/x-icon", // The Content-Type provided by the upstream server when requesting the URL
   "favicon_hash": "708578229", // Favicon hash for Shodan searching
-  "md5": "f3418a443e7d841097c714d69ec4bcb8", // MD5 hash of the favicon
+  "md5": "f3418a443e7d841097c714d69ec4bcb8", // MD5 hash of the favicon for Censys hunting
   "sha256": "6da5620880159634213e197fafca1dde0272153be3e4590818533fab8d040770" // SHA256 of the favicon
 }
 ```
