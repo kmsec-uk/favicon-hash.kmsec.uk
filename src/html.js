@@ -26,9 +26,12 @@ export default `<!DOCTYPE html>
 		kbd {
 			word-break: break-all
 		}
-        h4 {
-            margin: 0px
-        }
+    h4 {
+        margin: 0px
+    }
+    .secondary {
+      margin: 5px 0px 5px 0px;
+    }
 
 	</style>
 </head>
@@ -44,7 +47,7 @@ export default `<!DOCTYPE html>
 <form id="by_url" onsubmit="return submit_url(this)">
 
   <label for="url">Favicon URL</label>
-  <input type="url" id="url" name="url" placeholder="https://kmsec.uk/favicon.ico" onfocus="updateContents()" required>
+  <input type="url" id="url" name="url" placeholder="https://www.google.com/favicon.ico" onfocus="updateContents()" required>
   <small>Please provide the full URI path to the favicon</small>
   <button value="url" type="submit">Hash from URL</button>
 </form>
@@ -151,6 +154,9 @@ with open('favicon.ico', 'rb') as favicon:
 <script>hljs.highlightAll();</script>
 <script>
 var shodan_query_uri = "https://www.shodan.io/search?query=http.favicon.hash%3A"
+var vt_query_uri = "https://www.virustotal.com/gui/search/entity:url%20main_icon_md5:"
+var censys_query_uri = "https://search.censys.io/search?resource=hosts&sort=RELEVANCE&per_page=25&virtual_hosts=EXCLUDE&q=services.http.response.favicons.md5_hash%3A"
+
 function updateContents() {
     document.getElementById("url").setAttribute("value", "https://")
   }
@@ -165,11 +171,23 @@ function submit_url(form) {
     .then(data => {
         const favicon_hash = data.favicon_hash
         const output_div = document.getElementById('output');
+        var exposedUIelements = ["req_location","favicon_hash","md5"];
         let tableHTML = \`<ins>Result for \${formdata.get("url")}:</ins><br><table role="grid">\`;
         for (const key in data) {
+            if (exposedUIelements.indexOf(key) > -1)
             tableHTML += \`<tr><td>\${key}</td><td><kbd>\${data[key]}</kbd></td></tr>\`;
         }
-        tableHTML += \`</table><br><a href="\${shodan_query_uri + data.favicon_hash}"><strong>Check Shodan for this favicon</strong></a>\`
+        tableHTML += \`</table>
+          <div class="grid">
+            <div><a role="button" class="secondary" href="\${shodan_query_uri + data.favicon_hash}"><strong>Search Shodan</strong></a></div>
+            <div><a role="button" class="secondary" href="\${vt_query_uri + data.md5}"><strong>Search VirusTotal</strong></a></div>
+            <div><a role="button" class="secondary" href="\${censys_query_uri + data.md5}"><strong>Search Censys</strong></a></div>
+          </div>
+          <hr>
+          <details>
+            <summary>View raw API data</summary>
+              <pre><code>\${JSON.stringify(data, null, 2)}</code></pre>
+          </details>\`
         output_div.innerHTML = tableHTML;
         output_div.style.visibility = 'visible';
         })
@@ -187,14 +205,26 @@ function submit_file(form) {
         .then(response => response.json())
         .then(data => {
             const output_div = document.getElementById('output_file')
+            var exposedUIelements = ["favicon_hash","md5"];
             let tableHTML = \`<ins>Result for file:</ins><br><table role="grid">\`;
-        for (const key in data) {
-            tableHTML += \`<tr><td>\${key}</td><td><kbd>\${data[key]}</kbd></td></tr>\`;
-        }
-        tableHTML += \`</table><br><a href="\${shodan_query_uri + data.favicon_hash}"><strong>Check Shodan for this favicon</strong></a>\`
-        output_div.innerHTML = tableHTML;
-        output_div.style.visibility = 'visible';
-        })
+            for (const key in data) {
+              if (exposedUIelements.indexOf(key) > -1)
+              tableHTML += \`<tr><td>\${key}</td><td><kbd>\${data[key]}</kbd></td></tr>\`;
+          }
+          tableHTML += \`</table>
+            <div class="grid">
+              <div><a role="button" class="secondary" href="\${shodan_query_uri + data.favicon_hash}"><strong>Search Shodan</strong></a></div>
+              <div><a role="button" class="secondary" href="\${vt_query_uri + data.md5}"><strong>Search VirusTotal</strong></a></div>
+              <div><a role="button" class="secondary" href="\${censys_query_uri + data.md5}"><strong>Search Censys</strong></a></div>
+            </div>
+            <hr>
+            <details>
+              <summary>View raw API data</summary>
+                <pre><code>\${JSON.stringify(data, null, 2)}</code></pre>
+            </details>\`
+          output_div.innerHTML = tableHTML;
+          output_div.style.visibility = 'visible';
+          })
     return false;
 }
 </script>
