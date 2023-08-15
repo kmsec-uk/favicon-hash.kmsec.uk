@@ -179,9 +179,9 @@ function submit_url(form) {
         }
         tableHTML += \`</table>
           <div class="grid">
-            <div><a role="button" class="secondary" href="\${shodan_query_uri + data.favicon_hash}"><strong>Search Shodan</strong></a></div>
-            <div><a role="button" class="secondary" href="\${vt_query_uri + data.md5}"><strong>Search VirusTotal</strong></a></div>
-            <div><a role="button" class="secondary" href="\${censys_query_uri + data.md5}"><strong>Search Censys</strong></a></div>
+            <div><a role="button" target="_blank" class="secondary" href="\${shodan_query_uri + data.favicon_hash}"><strong>Search Shodan</strong></a></div>
+            <div><a role="button" target="_blank" class="secondary" href="\${vt_query_uri + data.md5}"><strong>Search VirusTotal</strong></a></div>
+            <div><a role="button" target="_blank" class="secondary" href="\${censys_query_uri + data.md5}"><strong>Search Censys</strong></a></div>
           </div>
           <hr>
           <details>
@@ -213,9 +213,9 @@ function submit_file(form) {
           }
           tableHTML += \`</table>
             <div class="grid">
-              <div><a role="button" class="secondary" href="\${shodan_query_uri + data.favicon_hash}"><strong>Search Shodan</strong></a></div>
-              <div><a role="button" class="secondary" href="\${vt_query_uri + data.md5}"><strong>Search VirusTotal</strong></a></div>
-              <div><a role="button" class="secondary" href="\${censys_query_uri + data.md5}"><strong>Search Censys</strong></a></div>
+              <div><a role="button" target="_blank" class="secondary" href="\${shodan_query_uri + data.favicon_hash}"><strong>Search Shodan</strong></a></div>
+              <div><a role="button" target="_blank" class="secondary" href="\${vt_query_uri + data.md5}"><strong>Search VirusTotal</strong></a></div>
+              <div><a role="button" target="_blank" class="secondary" href="\${censys_query_uri + data.md5}"><strong>Search Censys</strong></a></div>
             </div>
             <hr>
             <details>
