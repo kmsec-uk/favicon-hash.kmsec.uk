@@ -6,7 +6,8 @@ import site_favicon from './site_favicon.js';
 const userAgent: string = 'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
 
 let upstreamURL: string = ''
-let detectMethod: string = 'direct'
+
+var detectMethod = new Array()
 
 async function favicon_to_sha256Digest(arraybuf: ArrayBuffer) {
 	const hashArray = await crypto.subtle.digest("SHA-256", arraybuf)
@@ -45,32 +46,33 @@ async function extractFaviconfromHTML(response: Response) {
 	// console.log(`Scraping from ${response.url}`)
 	
 	const matches: (string | null )[] = []
-	
+	var faviconCandidate: string | null = null
 	let returnString: string | null = null
+
 	// Run through the HTML and find shortcun icon links:
 	await new HTMLRewriter().on('link[rel="shortcut icon" i]', {
 		element(element) {
 		// DEBUGGING:
-		// console.log(`Shortucut icon located at ${element.getAttribute("href")}`)
+		console.log(`Shortucut icon located at ${element.getAttribute("href")}`)
 		  matches.push(element.getAttribute("href"))
 		},
 	  }).transform(response).text()
 	
 	if (matches.length > 0) {
-		for (let faviconCandidate of matches) {
-			// First, we find the first .ico or .png we come across:
-			if (faviconCandidate?.endsWith('ico' || 'png')) {
-
-				returnString = faviconCandidate
-
+		for (let faviconCandidates of matches) {
+			// First, we find the first .ico or .png we come across (we don't want base64):
+			if (faviconCandidates?.endsWith('ico') || faviconCandidates?.endsWith('png')) {
+				// console.log('breaking - going for first candidate')
+				faviconCandidate = faviconCandidates
 				break
 			}}
 		// Else, we just take the first candidate and run with it:
 		var faviconCandidate = matches[0]
 
 		// Handle relative URLs:
-		if (faviconCandidate?.startsWith('/')) {
-			returnString = new URL(response.url).origin + faviconCandidate
+		if (faviconCandidate?.startsWith('/') || faviconCandidate?.startsWith('.')) {
+
+			returnString = new URL(faviconCandidate, response.url).href
 		}
 		if (faviconCandidate?.match(/^https?:\/\//)) {
 			returnString = faviconCandidate
@@ -88,8 +90,10 @@ async function extractFaviconfromHTML(response: Response) {
 	}
 }
 
-
 async function JSONResponse(arraybuf: ArrayBuffer, externalRequest: Response) {
+	if (detectMethod.length === 0) {
+		detectMethod.push('direct')
+	}
 	const data = {
 		req_url : upstreamURL,
 		req_location : externalRequest.url,
@@ -119,12 +123,12 @@ async function retrieveFavicon(parsedURL: URL) : Promise<Response> {
 		}
 	})
 	if (externalRequest.redirected) {
-		detectMethod = 'redirect'
+		detectMethod.push('redirect')
 	}
 
 	if (!externalRequest.ok) {
 		if (!parsedURL.pathname) {
-			detectMethod = 'guess'
+			detectMethod.push('guess')
 			return await retrieveFavicon(new URL(parsedURL.origin + '/favicon.ico'))
 		} else {
 			return new Response(`Error getting upstream content - favicon not found at ${externalRequest.url}.\r\nUpstream status: ${externalRequest.status}\r\n${await externalRequest.text()}`, { status: 500 })
@@ -132,16 +136,16 @@ async function retrieveFavicon(parsedURL: URL) : Promise<Response> {
 	
 	} else {
 		// If we detect a non-favicon, try to extract from HTML
-		if (externalRequest.headers.get('Content-Type')?.startsWith('text/html')) {
-			detectMethod = 'html_extract'
+		if (externalRequest.headers.get('Content-Type')?.startsWith('text/html')) {			
 			const faviconsFromHTML = await extractFaviconfromHTML(externalRequest)
 
 			if (faviconsFromHTML) {
+				detectMethod.push('html_extract')
 				return await retrieveFavicon(new URL(faviconsFromHTML))
 			}
 			// Lastly, fallback to retrieve the favicon from an accepted standard location of the favicon, e.g. https://example.com/favicon.ico
 			else {
-				detectMethod = 'guess'
+				detectMethod.push('guess')
 				return await retrieveFavicon(new URL(parsedURL.origin + '/favicon.ico'))
 			}
 		} else {
@@ -195,7 +199,7 @@ async function fileRequest(request: Request) {
 
 export default {
 	async fetch(request: Request): Promise<Response> {
-		
+		detectMethod = [] // clear global variable (can persist through different Worker runs)
 		const requestURL = new URL(request.url)
 
 		switch (requestURL.pathname) {
