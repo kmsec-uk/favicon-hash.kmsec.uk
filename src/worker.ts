@@ -53,7 +53,7 @@ async function extractFaviconfromHTML(response: Response) {
 	await new HTMLRewriter().on('link[rel="shortcut icon" i]', {
 		element(element) {
 		// DEBUGGING:
-		console.log(`Shortucut icon located at ${element.getAttribute("href")}`)
+		// console.log(`Shortucut icon located at ${element.getAttribute("href")}`)
 		  matches.push(element.getAttribute("href"))
 		},
 	  }).transform(response).text()
@@ -67,24 +67,17 @@ async function extractFaviconfromHTML(response: Response) {
 				break
 			}}
 		// Else, we just take the first candidate and run with it:
-		var faviconCandidate = matches[0]
-
+		faviconCandidate = matches[0]
+		
+		if (faviconCandidate?.match(/^https?:\/\//)) {
+			return faviconCandidate
+		}
 		// Handle relative URLs:
 		if (faviconCandidate?.startsWith('/') || faviconCandidate?.startsWith('.')) {
-
-			returnString = new URL(faviconCandidate, response.url).href
-		}
-		if (faviconCandidate?.match(/^https?:\/\//)) {
-			returnString = faviconCandidate
-		}
-		// Return with our candidate:
-		if (returnString) {
-			return returnString
-		
-		// We don't want to account for every scenario (e.g. inline base64 encoded favicon), so return null if we exhaust our preferred options:
+			return new URL(faviconCandidate, response.url).href
 		} else {
-			return null
-		}			
+			return new URL(response.url + faviconCandidate).href
+		}	
 	} else {
 		return null
 	}

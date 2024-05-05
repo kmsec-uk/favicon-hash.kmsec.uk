@@ -46,7 +46,6 @@ export const html = `<!DOCTYPE html>
 
   <label for="url">Favicon URL</label>
   <input type="url" id="url" name="url" placeholder="https://www.google.com/favicon.ico" onfocus="updateContents()" required>
-  <small>Please provide the full URI path to the favicon</small>
   <button value="url" type="submit">Hash from URL</button>
 </form>
   <div id="output"></div>
