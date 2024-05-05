@@ -1,5 +1,5 @@
 import { Base64 } from 'js-base64';
-import html from './html.js';
+import {html, picocss} from './html.js';
 import { hash32 } from './mmh3_32_signed.js'
 import site_favicon from './site_favicon.js';
 
@@ -225,6 +225,12 @@ export default {
 						'content-type': 'image/png',
 					},
 				});
+			case '/pico.min.css':
+				return new Response(picocss, {
+					headers: {
+						'content-type': 'text/css'
+					}
+				})
 
 			default:
 				return new Response('404 not found', {
