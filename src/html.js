@@ -147,8 +147,6 @@ with open('favicon.ico', 'rb') as favicon:
 </article>
 </main>
 </body>
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-<script>hljs.highlightAll();</script>
 <script>
 var shodan_query_uri = "https://www.shodan.io/search?query=http.favicon.hash%3A"
 var vt_query_uri = "https://www.virustotal.com/gui/search/entity:url%20main_icon_md5:"
